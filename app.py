@@ -15,11 +15,10 @@ st.set_page_config(page_title="Does my region produce what it consumes?", layout
 def load_data():
     return load_processed_data()
 
-
 df, report = load_data()
 geojson_regions = load_geojson()
 
-# ---------- Sidebar: the filters ----------
+# ---------- Sidebar: filters ----------
 st.sidebar.header("Filters")
 
 selected_region = st.sidebar.selectbox("Choose your region", sorted(df["region"].unique()))

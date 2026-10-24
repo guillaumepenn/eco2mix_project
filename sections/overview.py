@@ -3,7 +3,6 @@ import streamlit as st
 
 
 def show_overview(balance, region_df, selected_region, geojson_regions, start_year, end_year):
-    # Hook sentence: surplus or deficit?
     region_balance = balance[balance["region"] == selected_region]["balance"].iloc[0]
     if region_balance > 0:
         st.success(f"{selected_region} produces on average {region_balance:,.0f} MW more than it consumes.")
@@ -28,8 +27,8 @@ def show_overview(balance, region_df, selected_region, geojson_regions, start_ye
     col4.metric("Renewable share", f"{renewable_share:.0f} %",
                 help="Wind, solar, hydro and bioenergy as a share of the total production.")
 
-    # Balance map (chart 1)
-    st.subheader("Which regions produce more than they consume?")
+    # Chart 1 : France's map
+    st.subheader("Which regions produce more than they consume ?")
     fig_map = px.choropleth(
         balance, geojson=geojson_regions, locations="region_code",
         featureidkey="properties.code", color="balance", hover_name="region",
@@ -43,16 +42,23 @@ def show_overview(balance, region_df, selected_region, geojson_regions, start_ye
 
     st.caption("Map: regions in blue produce more than they consume, regions in red consume more than they produce.")
 
-    # Headline insight, computed from the data
     n_surplus = (balance["balance"] > 0).sum()
-    st.markdown(f"**{n_surplus} out of {len(balance)} regions produce more than they consume.**")
+    st.markdown("What can be said about this map ? Around half of France's region consumes more energy than it produces. " \
+    "The most blatant example is the Île-de-France region which, on average, consumes 7,445 MW more than what it produces. "
+    "How can this be explained ?"
+    )
+
+    st.markdown(
+        "- Île-de-France may be the smallest but the most populated region of France (over **12 millions inhabitants**), so the electricity in this region is pretty. Moreover, it is a region of high activity, with the presence of a megacity and a capital like Paris\n"
+        "- Most of France's electricity is from nuclear origin, though Île-de-France has no nuclear plants, so it logically strugles to produce more energy\n"
+    )
 
     # Label each region as surplus or deficit
     balance_sorted = balance.sort_values("balance", ascending=False)
     balance_sorted["type"] = "Deficit"
     balance_sorted.loc[balance_sorted["balance"] > 0, "type"] = "Surplus"
 
-    # Chart 2: ranking
+    # Chart 2 : Average produuction - consumption by region
     fig_rank = px.bar(
         balance_sorted, x="region", y="balance", color="type",
         color_discrete_map={"Surplus": "steelblue", "Deficit": "indianred"},
@@ -65,8 +71,9 @@ def show_overview(balance, region_df, selected_region, geojson_regions, start_ye
 
     top = balance_sorted.iloc[0]
     bottom = balance_sorted.iloc[-1]
-    st.info(
-        f"**Takeaway:** {top['region']} has the largest surplus ({top['balance']:+,.0f} MW on average) and "
-        f"{bottom['region']} the largest deficit ({bottom['balance']:+,.0f} MW). "
-        "Deficit regions rely on the grid and on exchanges with their neighbours to cover their consumption."
-    )
+    
+    st.markdown("Again, regions such as Centre-Val de Loire or Auvergne-Rhône-Alpes have the largest surplus (around more than 6,000 MW on average) "
+    "and Île-de-France the largest deficit (~7,000 MW)." \
+    " Deficit regions rely on the grid and on exchanges with their neighbours to cover their consumption. So every region aren't equal in a matter of energetic independancy.")
+
+    st.markdown("**But how to explain that these production differences ?**")
